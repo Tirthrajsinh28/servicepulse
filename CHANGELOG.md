@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.0] - 2026-07-30
 
 - Build the ServicePulse modular-monolith incident-management slice with
   workspace-scoped services, incidents, timelines, comments, assignments,
@@ -18,6 +18,12 @@
 - Add local verification evidence with H2 PostgreSQL-mode tests, frontend
   checks, H2-substitute runtime/browser flow, OpenAPI inspection, Docker/CI
   configuration, Dependabot, pull-request template, and issue template.
+- Add public GitHub Actions verification for frontend and backend jobs,
+  including PostgreSQL integration tests and frontend/backend container image
+  builds.
+- Add labeled frontend screenshot demo mode and current synthetic screenshots
+  for the public portfolio source.
 
-PostgreSQL/Testcontainers execution, Docker Compose runtime checks, remote
-GitHub Actions, deployment, screenshots, and release tag remain pending.
+Local Docker Compose runtime checks, external deployment, registration/
+invitations, and external notification delivery remain pending or intentionally
+deferred.
