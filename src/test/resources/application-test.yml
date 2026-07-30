@@ -1,0 +1,43 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:servicepulse;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+
+logging:
+  level:
+    root: WARN
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+servicepulse:
+  notifications:
+    poll-delay-ms: 3600000
+    initial-delay-ms: 3600000
+  security:
+    jwt:
+      issuer: servicepulse-test
+      secret-base64: c2VydmljZXB1bHNlLXRlc3Qtc2VjcmV0LWtleS0xMjM=
+      access-ttl: PT5M
+      refresh-ttl: PT1H

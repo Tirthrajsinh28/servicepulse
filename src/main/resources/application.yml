@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: servicepulse
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  flyway:
+    enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: ServicePulse
+    description: Incident management and service reliability platform
+    version: "@project.version@"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  structured:
+    format:
+      console: logstash
+    json:
+      add:
+        service: servicepulse
+
+servicepulse:
+  notifications:
+    batch-size: ${NOTIFICATION_BATCH_SIZE:20}
+    max-attempts: ${NOTIFICATION_MAX_ATTEMPTS:5}
+    retry-base: ${NOTIFICATION_RETRY_BASE:PT5S}
+    claim-timeout: ${NOTIFICATION_CLAIM_TIMEOUT:PT5M}
+    poll-delay-ms: ${NOTIFICATION_POLL_DELAY_MS:5000}
+    initial-delay-ms: ${NOTIFICATION_INITIAL_DELAY_MS:10000}
+  security:
+    jwt:
+      issuer: ${JWT_ISSUER:servicepulse}
+      secret-base64: ${JWT_SECRET_BASE64}
+      access-ttl: ${JWT_ACCESS_TTL:PT15M}
+      refresh-ttl: ${JWT_REFRESH_TTL:P7D}
+    login-throttle:
+      enabled: ${LOGIN_THROTTLE_ENABLED:true}
+      max-failures: ${LOGIN_THROTTLE_MAX_FAILURES:5}
+      failure-window: ${LOGIN_THROTTLE_FAILURE_WINDOW:PT10M}
+      lockout: ${LOGIN_THROTTLE_LOCKOUT:PT15M}
+    cors:
+      allowed-origins: ${SERVICEPULSE_CORS_ALLOWED_ORIGINS:}

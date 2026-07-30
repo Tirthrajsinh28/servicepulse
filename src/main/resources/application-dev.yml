@@ -1,0 +1,9 @@
+servicepulse:
+  dev-seed:
+    email: ${SERVICEPULSE_DEV_ADMIN_EMAIL:dev-admin@servicepulse.local}
+    password: ${SERVICEPULSE_DEV_ADMIN_PASSWORD}
+    display-name: ${SERVICEPULSE_DEV_ADMIN_NAME:Development Administrator}
+    workspace-name: ${SERVICEPULSE_DEV_WORKSPACE_NAME:Northstar Labs}
+    workspace-slug: ${SERVICEPULSE_DEV_WORKSPACE_SLUG:northstar-labs}
+    service-name: ${SERVICEPULSE_DEV_SERVICE_NAME:Checkout API}
+    service-slug: ${SERVICEPULSE_DEV_SERVICE_SLUG:checkout-api}

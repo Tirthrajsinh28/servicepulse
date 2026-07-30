@@ -1,0 +1,59 @@
+name: servicepulse-local
+
+services:
+  postgres:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: servicepulse
+      POSTGRES_USER: servicepulse
+      POSTGRES_PASSWORD: ${SERVICEPULSE_DB_PASSWORD:?set SERVICEPULSE_DB_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U servicepulse -d servicepulse"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - servicepulse-postgres:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/servicepulse
+      DATABASE_USERNAME: servicepulse
+      DATABASE_PASSWORD: ${SERVICEPULSE_DB_PASSWORD:?set SERVICEPULSE_DB_PASSWORD in .env}
+      JWT_SECRET_BASE64: ${JWT_SECRET_BASE64:?set JWT_SECRET_BASE64 in .env}
+      SERVICEPULSE_DEV_ADMIN_PASSWORD: ${SERVICEPULSE_DEV_ADMIN_PASSWORD:?set SERVICEPULSE_DEV_ADMIN_PASSWORD in .env}
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - --silent
+        - --show-error
+        - http://127.0.0.1:8080/actuator/health
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "4173:8080"
+
+volumes:
+  servicepulse-postgres:

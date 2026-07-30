@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a reproducible ServicePulse API, workflow, authorization, or UI defect.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: Include the endpoint, screen, role, status code, and redacted response when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain the expected workflow, permission boundary, validation result, or UI state.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Use synthetic organizations, users, services, and incidents only.
+      placeholder: |
+        1. Start the local H2 substitute or Docker Compose environment.
+        2. Sign in as ...
+        3. Call ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification already attempted
+      description: List tests, logs, or browser checks already run, including exact blockers such as Docker availability.
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: This report does not include secrets, real customer data, employer-confidential material, or non-synthetic incident details.
+          required: true
