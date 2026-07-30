@@ -5,6 +5,8 @@ import { NavLink } from "../router";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const auth = useAuth();
+  const demoModeEnabled =
+    import.meta.env.VITE_SERVICEPULSE_DEMO_MODE === "true";
   const currentWorkspace = auth.workspaces.find(
     (workspace) => workspace.id === auth.workspaceId,
   );
@@ -44,6 +46,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
       </header>
+      {demoModeEnabled ? (
+        <div className="demo-banner" role="note">
+          Frontend demo mode: synthetic data for screenshots; no live backend or
+          customer data.
+        </div>
+      ) : null}
       <div className="app-body">
         <nav className="side-nav" aria-label="Primary navigation">
           <NavLink end to="/">

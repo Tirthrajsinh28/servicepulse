@@ -42,6 +42,21 @@ another origin. The backend denies cross-origin browser calls unless
 same-origin proxy topology unless a separate deployment target has been
 intentionally reviewed.
 
+## Screenshot demo mode
+
+For screenshot capture only, the frontend can use a synthetic in-browser API
+adapter:
+
+```powershell
+$env:VITE_SERVICEPULSE_DEMO_MODE = "true"
+npm.cmd run dev -- --host 127.0.0.1 --port 5188
+```
+
+Demo mode shows a visible banner and uses fictional Northstar Labs data. It
+does not represent a live backend, production data, cloud execution, employer
+work, users, traffic, or deployment. Leave `VITE_SERVICEPULSE_DEMO_MODE`
+unset for the normal API-backed client.
+
 ## Production container
 
 The frontend Dockerfile performs a locked Node 24 build, then copies only the
@@ -80,10 +95,16 @@ creates a synthetic account only when the operator supplies
 - ESLint and TypeScript checks pass.
 - The Vite production build succeeds.
 - `npm audit --audit-level=high` reported zero known vulnerabilities on
-  2026-07-02.
+  2026-07-30.
 - A local browser run against the Spring API and H2 development substitute
   verified login, dashboard, declaration, status transition, assignment,
   commenting, friendly audit labels, and a 390 px responsive view.
+- A frontend demo-mode screenshot pass captured dashboard, incident-detail,
+  and mobile service-catalog routes with a visible synthetic-data banner and
+  verified no horizontal overflow at 390 px.
+- Public ServicePulse CI run `30521691031` passed frontend and backend verify
+  jobs at commit `7d947f7ccbb28978e7576663733b5e30edffcb4b`.
 
-This evidence is local. It is not a deployment, PostgreSQL, container, or CI
-result.
+This evidence is not a deployment, production-data, user, traffic, or external
+notification-delivery claim. PostgreSQL Testcontainers and local Compose remain
+blocked until Docker is available in the local environment.

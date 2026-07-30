@@ -40,6 +40,21 @@ If Docker is not available, say clearly that PostgreSQL/Testcontainers and
 Compose execution remain pending. The H2 development substitute is useful for
 local checks, but it is not PostgreSQL evidence.
 
+## Frontend screenshot mode
+
+When the API is not running and the goal is only to capture current UI
+screenshots, start the frontend with its explicit synthetic adapter:
+
+```powershell
+Set-Location frontend
+$env:VITE_SERVICEPULSE_DEMO_MODE = "true"
+npm.cmd run dev -- --host 127.0.0.1 --port 5188
+```
+
+Every screenshot from this mode must show the yellow demo banner and must be
+captioned as synthetic frontend demo data. Do not describe demo-mode
+screenshots as backend, PostgreSQL, deployment, user, or traffic evidence.
+
 ## Local browser flow
 
 1. Start the API using the `dev` profile with a local-only development seed
@@ -77,9 +92,9 @@ transactional notification outbox, and a React/TypeScript client. The demo
 starts with database-backed login, then shows tenant-aware dashboard data,
 incident declaration, transitions, assignment, comments, and timeline history.
 The local verification includes backend tests, frontend route/accessibility
-tests, OpenAPI checks, and a browser flow against a labeled local substitute.
-Docker/PostgreSQL and remote CI are configured but still need an environment
-where they can run.”
+tests, OpenAPI checks, a browser flow against a labeled local substitute, and
+public GitHub Actions evidence. Docker/PostgreSQL Compose execution is still a
+separate gate because local Docker is unavailable.”
 
 ## Evidence to show during the demo
 
@@ -91,8 +106,9 @@ where they can run.”
 
 ## Do not claim
 
-- Public deployment, remote CI, or container execution unless those checks have
-  run and are recorded.
+- Public deployment or local Compose execution unless those checks have run and
+  are recorded. Public ServicePulse CI evidence exists, but it is not a live
+  deployment claim.
 - PostgreSQL integration from H2-only evidence.
 - External notification delivery; the current adapter logs locally.
 - Security completeness, defect-free behavior, or production traffic.
