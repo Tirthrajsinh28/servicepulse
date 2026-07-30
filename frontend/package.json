@@ -16,7 +16,7 @@
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-dom": "19.2.7"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "@testing-library/user-event": "14.6.1",
     "@types/jest-axe": "3.5.9",
     "@types/node": "26.1.0",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.3",
     "eslint": "10.6.0",
