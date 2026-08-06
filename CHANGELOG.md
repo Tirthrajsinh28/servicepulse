@@ -23,6 +23,10 @@
   builds.
 - Add labeled frontend screenshot demo mode and current synthetic screenshots
   for the public portfolio source.
+- Refresh frontend transitive development dependencies after GitHub Dependabot
+  alerts: `brace-expansion` is now locked to 5.0.9 and `undici` to 7.29.0.
+  The ServicePulse frontend check gate and high-severity npm audit passed
+  after the lockfile update.
 
 Local Docker Compose runtime checks, external deployment, registration/
 invitations, and external notification delivery remain pending or intentionally
