@@ -5,7 +5,7 @@ Last updated: 2026-07-14
 
 Current evidence boundary:
 
-- Local backend evidence is 68 tests with the recorded coverage gate.
+- Local backend evidence is 71 tests with the recorded coverage gate.
 - Local frontend evidence is 20 tests with automated axe coverage across 12
   route states, including workspace membership and failed-notification
   operations administrator/viewer states.
@@ -85,6 +85,8 @@ Allowed recovery paths:
 ## Authentication and membership slice
 
 - Database-backed enabled users with BCrypt password verification.
+- Public self-registration that creates an enabled user without automatic
+  workspace membership.
 - Short-lived HMAC-signed access tokens.
 - Opaque random refresh tokens stored only as SHA-256 hashes.
 - Refresh rotation and logout revocation.
@@ -150,7 +152,9 @@ Allowed recovery paths:
 - Identical role updates do not create duplicate audit history.
 - Ordered row locks serialize membership mutations.
 - Last-enabled-administrator demotion/removal is rejected.
-- User invitations and registration remain future work.
+- User invitations remain future work.
+- Self-registered users must be added to a workspace by an administrator before
+  they receive workspace access.
 - Authenticated users discover only their own workspace memberships through `/api/v1/workspaces`.
 
 ## Background notification slice
@@ -189,9 +193,8 @@ Allowed recovery paths:
 1. Manual physical-keyboard, contrast, zoom, and screen-reader checks.
 2. Fresh screenshots and demo media captured from current builds.
 3. Docker/PostgreSQL/CI/deployment and verified health checks.
-4. Registration/invitations, external notification delivery, distributed abuse
-   controls, signing-key rotation, and public separate-origin token-transport
-   review.
+4. Invitations, external notification delivery, distributed abuse controls,
+   signing-key rotation, and public separate-origin token-transport review.
 
 ## Acceptance criteria
 

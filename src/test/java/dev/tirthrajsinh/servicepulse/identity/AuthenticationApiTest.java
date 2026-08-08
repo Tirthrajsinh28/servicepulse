@@ -91,6 +91,75 @@ class AuthenticationApiTest {
     }
 
     @Test
+    void registerCreatesEnabledUserWithoutWorkspaceMembershipAndCanLogin() throws Exception {
+        MvcResult registration = mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "New.Engineer@Example.Test",
+                      "displayName": " New Engineer ",
+                      "password": "new local password"
+                    }
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.email").value("new.engineer@example.test"))
+            .andExpect(jsonPath("$.displayName").value("New Engineer"))
+            .andReturn();
+        JsonNode registered = objectMapper.readTree(registration.getResponse().getContentAsString());
+        UUID registeredUserId = UUID.fromString(registered.get("id").asText());
+
+        org.assertj.core.api.Assertions.assertThat(userEnabled(registeredUserId)).isTrue();
+        org.assertj.core.api.Assertions.assertThat(workspaceMembershipCount(registeredUserId)).isZero();
+        org.assertj.core.api.Assertions.assertThat(auditCount("USER_REGISTERED", registeredUserId))
+            .isEqualTo(1);
+
+        String loginResponse = loginWith("new.engineer@example.test", "new local password")
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        JsonNode tokens = objectMapper.readTree(loginResponse);
+
+        mockMvc.perform(get("/api/v1/workspaces")
+                .header("Authorization", "Bearer " + tokens.get("accessToken").asText()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void registerRejectsDuplicateEmailCaseInsensitively() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "ENGINEER@example.test",
+                      "displayName": "Duplicate Engineer",
+                      "password": "duplicate local password"
+                    }
+                    """))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.title").value("Resource conflict"))
+            .andExpect(jsonPath("$.detail").value("A user with this email already exists."));
+    }
+
+    @Test
+    void registerValidatesPasswordAndDisplayName() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "email": "short-password@example.test",
+                      "displayName": "",
+                      "password": "too-short"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.title").value("Request validation failed"))
+            .andExpect(jsonPath("$.errors.displayName").exists())
+            .andExpect(jsonPath("$.errors.password").exists());
+    }
+
+    @Test
     void refreshRotatesAndInvalidatesPreviousToken() throws Exception {
         JsonNode first = login();
         String previousRefreshToken = first.get("refreshToken").asText();
@@ -250,6 +319,37 @@ class AuthenticationApiTest {
             "select count(*) from refresh_tokens where user_id = ?",
             Integer.class,
             userId
+        );
+        org.assertj.core.api.Assertions.assertThat(count).isNotNull();
+        return count;
+    }
+
+    private boolean userEnabled(UUID userId) {
+        Boolean enabled = jdbc.queryForObject(
+            "select enabled from users where id = ?",
+            Boolean.class,
+            userId
+        );
+        org.assertj.core.api.Assertions.assertThat(enabled).isNotNull();
+        return enabled;
+    }
+
+    private int workspaceMembershipCount(UUID userId) {
+        Integer count = jdbc.queryForObject(
+            "select count(*) from workspace_members where user_id = ?",
+            Integer.class,
+            userId
+        );
+        org.assertj.core.api.Assertions.assertThat(count).isNotNull();
+        return count;
+    }
+
+    private int auditCount(String action, UUID targetId) {
+        Integer count = jdbc.queryForObject(
+            "select count(*) from audit_entries where action = ? and target_type = 'USER' and target_id = ?",
+            Integer.class,
+            action,
+            targetId
         );
         org.assertj.core.api.Assertions.assertThat(count).isNotNull();
         return count;

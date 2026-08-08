@@ -31,6 +31,8 @@ The current scope includes:
   `PENDING` and writes an audit entry before the worker retries it.
 - Explicit failure timestamps and a tenant/status/time index for operator queries.
 - Database-backed login with BCrypt password verification.
+- Public self-registration API that creates an enabled user with no automatic
+  workspace membership.
 - Configurable local failed-login throttling with generic authentication
   failures.
 - Exact-origin CORS allowlist support that is empty by default.
@@ -246,18 +248,25 @@ Actions records a run.
 Business routes require a signed access token. Development seed data is created only under the `dev` profile and only when an environment-supplied password is present. No default application credential exists.
 
 The generated OpenAPI 3.1 document identifies the ServicePulse API and build
-version, defines an HTTP bearer/JWT scheme, and applies it globally. Login,
-refresh, and public system status explicitly override that requirement with an
-empty security array. A runtime H2-substitute check observed all 19 implemented
+version, defines an HTTP bearer/JWT scheme, and applies it globally.
+Registration, login, refresh, and public system status explicitly override
+that requirement with an empty security array. A runtime H2-substitute check
+observed all 20 implemented
 paths; PostgreSQL and deployed OpenAPI checks remain separate gates.
 
 Authentication routes:
 
+- `POST /api/v1/auth/register`
 - `POST /api/v1/auth/login`
 - `POST /api/v1/auth/refresh`
 - `POST /api/v1/auth/logout`
 - `GET /api/v1/auth/me`
 - `GET /api/v1/workspaces`
+
+Registration stores a BCrypt password hash, normalizes the email address to
+lowercase, writes a user audit entry, and deliberately does not grant workspace
+membership. An administrator must add the enabled user to a workspace before
+the user can view or mutate workspace data.
 
 Access tokens are short-lived HMAC-signed JWTs. Refresh tokens are opaque random values; only SHA-256 hashes are stored, and a successful refresh rotates and revokes the prior token.
 
@@ -303,7 +312,10 @@ Membership routes:
 - `PUT /api/v1/workspaces/{workspaceId}/members/{userId}`
 - `DELETE /api/v1/workspaces/{workspaceId}/members/{userId}`
 
-Members may list their workspace directory; only administrators may add, change, or remove memberships. Adds reference existing enabled users—registration and invitations are not implemented. A workspace must retain at least one enabled administrator.
+Members may list their workspace directory; only administrators may add, change,
+or remove memberships. Adds reference existing enabled users, including users
+created through self-registration. Invitations are not implemented. A workspace
+must retain at least one enabled administrator.
 
 Notification operations route:
 

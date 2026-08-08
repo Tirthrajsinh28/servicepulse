@@ -3,10 +3,13 @@ package dev.tirthrajsinh.servicepulse.identity;
 import java.util.UUID;
 
 import dev.tirthrajsinh.servicepulse.identity.AuthenticationService.TokenPair;
+import dev.tirthrajsinh.servicepulse.identity.UserRegistrationService.RegisteredUser;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,9 +23,27 @@ import org.springframework.web.bind.annotation.RestController;
 class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final UserRegistrationService registrationService;
 
-    AuthenticationController(AuthenticationService authenticationService) {
+    AuthenticationController(
+        AuthenticationService authenticationService,
+        UserRegistrationService registrationService
+    ) {
         this.authenticationService = authenticationService;
+        this.registrationService = registrationService;
+    }
+
+    @PostMapping("/register")
+    @SecurityRequirements
+    ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegistrationRequest request) {
+        RegisteredUser user = registrationService.register(
+            request.email(),
+            request.displayName(),
+            request.password()
+        );
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(RegistrationResponse.from(user));
     }
 
     @PostMapping("/login")
@@ -49,12 +70,19 @@ class AuthenticationController {
     }
 
     record LoginRequest(
-        @NotBlank @Email @jakarta.validation.constraints.Size(max = 320) String email,
-        @NotBlank @jakarta.validation.constraints.Size(max = 200) String password
+        @NotBlank @Email @Size(max = 320) String email,
+        @NotBlank @Size(max = 200) String password
     ) {
     }
 
-    record RefreshRequest(@NotBlank @jakarta.validation.constraints.Size(max = 200) String refreshToken) {
+    record RegistrationRequest(
+        @NotBlank @Email @Size(max = 320) String email,
+        @NotBlank @Size(min = 2, max = 120) String displayName,
+        @NotBlank @Size(min = 12, max = 200) String password
+    ) {
+    }
+
+    record RefreshRequest(@NotBlank @Size(max = 200) String refreshToken) {
     }
 
     record TokenResponse(
@@ -70,6 +98,12 @@ class AuthenticationController {
                 "Bearer",
                 pair.expiresInSeconds()
             );
+        }
+    }
+
+    record RegistrationResponse(UUID id, String email, String displayName) {
+        static RegistrationResponse from(RegisteredUser user) {
+            return new RegistrationResponse(user.id(), user.email(), user.displayName());
         }
     }
 

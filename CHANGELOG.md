@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a public self-registration API that creates enabled users with BCrypt
+  password hashes, normalized email addresses, no automatic workspace
+  membership, and a user audit entry.
+- Expand the OpenAPI regression to cover the registration route.
+
 ## [0.1.0] - 2026-07-30
 
 - Build the ServicePulse modular-monolith incident-management slice with
@@ -28,6 +35,5 @@
   The ServicePulse frontend check gate and high-severity npm audit passed
   after the lockfile update.
 
-Local Docker Compose runtime checks, external deployment, registration/
-invitations, and external notification delivery remain pending or intentionally
-deferred.
+Local Docker Compose runtime checks, external deployment, invitations, and
+external notification delivery remain pending or intentionally deferred.

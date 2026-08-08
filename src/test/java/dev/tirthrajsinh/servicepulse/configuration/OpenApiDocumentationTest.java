@@ -40,7 +40,7 @@ class OpenApiDocumentationTest {
         assertThat(document.path("openapi").asText()).startsWith("3.");
         assertThat(document.at("/info/title").asText()).isEqualTo("ServicePulse API");
         assertThat(document.at("/info/version").asText()).isEqualTo("0.0.1-test");
-        assertThat(document.at("/paths").size()).isEqualTo(19);
+        assertThat(document.at("/paths").size()).isEqualTo(20);
         assertThat(document.at(
             "/paths/~1api~1v1~1workspaces~1{workspaceId}~1notification-jobs~1failed"
         ).isObject()).isTrue();
@@ -54,6 +54,7 @@ class OpenApiDocumentationTest {
         assertThat(scheme.path("bearerFormat").asText()).isEqualTo("JWT");
         assertThat(document.at("/security/0/bearerAuth").isArray()).isTrue();
 
+        assertPublicOperation(document, "/paths/~1api~1v1~1auth~1register/post");
         assertPublicOperation(document, "/paths/~1api~1v1~1auth~1login/post");
         assertPublicOperation(document, "/paths/~1api~1v1~1auth~1refresh/post");
         assertPublicOperation(document, "/paths/~1api~1v1~1system~1status/get");

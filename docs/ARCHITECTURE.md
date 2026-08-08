@@ -73,8 +73,11 @@ Current foundation:
 
 - No Spring-generated default user.
 - Health, status, and OpenAPI routes are public.
+- Registration, login, refresh, health, status, and OpenAPI routes are public.
 - Every other route requires a signed access token.
 - User credentials are verified against BCrypt hashes in PostgreSQL.
+- Self-registration creates an enabled user account but grants no workspace
+  membership automatically.
 - A local in-memory limiter throttles repeated failed login attempts by
   normalized email address.
 - Cross-origin browser access requires an explicit HTTPS or local development
@@ -91,8 +94,8 @@ Current foundation:
 
 Planned:
 
-- Distributed/shared-store login throttling, edge rate limits, and
-  authentication audit events.
+- Distributed/shared-store login throttling, edge rate limits, login/refresh
+  audit events, and invitation workflows.
 
 ## Testing boundaries
 

@@ -7,8 +7,8 @@ The candidate should understand each topic before claiming confidence with Servi
 
 Current evidence boundary:
 
-- Local evidence includes 68 backend tests, 20 frontend tests, 12 automated
-  axe route states, 19 OpenAPI paths, and browser workflow verification against
+- Local evidence includes 71 backend tests, 20 frontend tests, 12 automated
+  axe route states, 20 OpenAPI paths, and browser workflow verification against
   the labeled H2 development substitute.
 - Do not claim PostgreSQL runtime verification, Docker execution, remote CI,
   public repository availability, screenshots/demo media, or deployment until

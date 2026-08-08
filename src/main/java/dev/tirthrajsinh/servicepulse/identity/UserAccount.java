@@ -36,6 +36,42 @@ public class UserAccount {
     protected UserAccount() {
     }
 
+    private UserAccount(
+        UUID id,
+        String email,
+        String displayName,
+        String passwordHash,
+        boolean enabled,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        this.id = id;
+        this.email = email;
+        this.displayName = displayName;
+        this.passwordHash = passwordHash;
+        this.enabled = enabled;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static UserAccount registered(
+        UUID id,
+        String email,
+        String displayName,
+        String passwordHash,
+        Instant registeredAt
+    ) {
+        return new UserAccount(
+            id,
+            email,
+            displayName,
+            passwordHash,
+            true,
+            registeredAt,
+            registeredAt
+        );
+    }
+
     public UUID getId() {
         return id;
     }

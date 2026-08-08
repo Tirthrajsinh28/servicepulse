@@ -115,6 +115,23 @@ public class AuditEntry {
         );
     }
 
+    public static AuditEntry user(
+        String action,
+        UUID userId,
+        String detail,
+        Instant occurredAt
+    ) {
+        return new AuditEntry(
+            null,
+            null,
+            action,
+            "USER",
+            userId,
+            detail,
+            occurredAt
+        );
+    }
+
     public static AuditEntry notificationJob(
         UUID workspaceId,
         UUID actorId,

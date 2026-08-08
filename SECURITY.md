@@ -41,7 +41,7 @@ logs.
 - PostgreSQL/Testcontainers, Docker Compose, container image behavior, and
   remote GitHub Actions remain unverified until Docker/GitHub publication are
   available.
-- Registration/invitations, account recovery, distributed/shared-store rate
-  limits, edge abuse protections, signing-key rotation, and broader abuse
-  protections remain future work.
+- Invitations, account recovery, distributed/shared-store rate limits, edge
+  abuse protections, signing-key rotation, and broader abuse protections remain
+  future work.
 - The local H2 substitute is not PostgreSQL production evidence.

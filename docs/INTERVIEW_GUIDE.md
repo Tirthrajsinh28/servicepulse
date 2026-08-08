@@ -19,13 +19,15 @@ The schema contains users, workspaces, memberships, managed services, incidents,
 
 ## Authentication
 
-Enabled database users authenticate with email and BCrypt password hashes. A
-local failed-login limiter counts repeated failures by normalized email address
-and returns the same generic authentication error when the threshold is reached.
-The server issues a short-lived HMAC-signed JWT and an opaque random refresh
-token. Only the refresh token's SHA-256 hash is stored. Refresh exchanges rotate
-and revoke the prior token; logout revokes it. The signing secret has no
-application default.
+Users may self-register through the public API. Registration normalizes the
+email address, stores only a BCrypt password hash, writes a user audit entry,
+and grants no workspace membership automatically. Enabled database users
+authenticate with email and BCrypt password hashes. A local failed-login limiter
+counts repeated failures by normalized email address and returns the same
+generic authentication error when the threshold is reached. The server issues a
+short-lived HMAC-signed JWT and an opaque random refresh token. Only the refresh
+token's SHA-256 hash is stored. Refresh exchanges rotate and revoke the prior
+token; logout revokes it. The signing secret has no application default.
 
 ## Authorization
 
@@ -140,9 +142,9 @@ Deployment has not been selected or executed. The foundation includes Actuator h
   `sessionStorage`, with the XSS trade-off documented.
 - One refresh/retry attempt rather than an unbounded authentication loop.
 
-Distributed/shared-store rate limits, database-level audit immutability, secret
-rotation procedures, content-security policy, and broader security tests remain
-incomplete.
+Distributed/shared-store rate limits, invitation workflows, database-level
+audit immutability, secret rotation procedures, content-security policy, and
+broader security tests remain incomplete.
 
 ## Current challenges
 
@@ -168,8 +170,8 @@ incomplete.
 ## Known limitations
 
 See the repository README. The largest gaps are external notification delivery,
-registration/invitations, distributed/edge abuse controls, broader frontend
-accessibility/E2E coverage, Docker verification, CI, and deployment.
+invitations, distributed/edge abuse controls, broader frontend accessibility/E2E
+coverage, Docker verification, CI, and deployment.
 
 ## Future improvements
 
