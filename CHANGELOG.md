@@ -6,6 +6,8 @@
   password hashes, normalized email addresses, no automatic workspace
   membership, and a user audit entry.
 - Expand the OpenAPI regression to cover the registration route.
+- Refresh the frontend transitive development lockfile after a GitHub Actions
+  audit failure so `nanoid` resolves to 3.3.18.
 
 ## [0.1.0] - 2026-07-30
 
