@@ -8,6 +8,11 @@
 - Expand the OpenAPI regression to cover the registration route.
 - Refresh the frontend transitive development lockfile after a GitHub Actions
   audit failure so `nanoid` resolves to 3.3.18.
+- Add administrator-managed workspace invitations with hashed one-time tokens,
+  cancellation, expiry handling, authenticated invitee acceptance, membership
+  creation, and invitation/membership audit entries.
+- Expand backend regression coverage to 78 tests and OpenAPI coverage to 23
+  implemented paths for the invitation slice.
 
 ## [0.1.0] - 2026-07-30
 
@@ -37,5 +42,6 @@
   The ServicePulse frontend check gate and high-severity npm audit passed
   after the lockfile update.
 
-Local Docker Compose runtime checks, external deployment, invitations, and
-external notification delivery remain pending or intentionally deferred.
+Local Docker Compose runtime checks, external deployment, frontend invitation
+management/email delivery, and external notification delivery remain pending or
+intentionally deferred.

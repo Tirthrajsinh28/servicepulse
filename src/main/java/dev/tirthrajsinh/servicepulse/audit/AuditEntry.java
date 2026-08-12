@@ -115,6 +115,25 @@ public class AuditEntry {
         );
     }
 
+    public static AuditEntry invitation(
+        UUID workspaceId,
+        UUID actorId,
+        String action,
+        UUID invitationId,
+        String detail,
+        Instant occurredAt
+    ) {
+        return new AuditEntry(
+            workspaceId,
+            actorId,
+            action,
+            "WORKSPACE_INVITATION",
+            invitationId,
+            detail,
+            occurredAt
+        );
+    }
+
     public static AuditEntry user(
         String action,
         UUID userId,

@@ -24,6 +24,9 @@ The current scope includes:
 - Validated/generated `X-Request-ID` propagation through response headers and MDC.
 - Administrator-managed membership adds, role changes, removals, and member listing.
 - Ordered row locks and an enabled-admin invariant that prevents workspace lockout.
+- Administrator-managed workspace invitations with one-time token return,
+  stored token hashes, duplicate/member conflict checks, cancellation,
+  authenticated invitee acceptance, expiry handling, and audit entries.
 - Transactional notification outbox entries for incident declaration/status changes.
 - Bounded background claims, exponential retries, stale-claim recovery, and failed-job state.
 - Administrator-only, workspace-scoped failed-job inspection with bounded pagination.
@@ -55,13 +58,15 @@ The current scope includes:
 The event and audit tables are append-only through the current application repositories. Database-level immutability controls are not yet implemented.
 
 The next quality gates are physical-keyboard/contrast/zoom/screen-reader
-accessibility checks, Docker and PostgreSQL verification, CI execution,
+accessibility checks, Docker and local PostgreSQL verification, frontend
+invite-management UI, email/provider-backed invitation delivery if selected,
 PostgreSQL-backed or deployed OpenAPI inspection, and a deployment decision.
 
-The GitHub Actions workflow and Dockerfile are present but have not run in
-GitHub or a local Docker engine. CI is configured as independent dependency
-review, backend verify/container, and frontend quality/build jobs. Dependabot
-watches Maven, npm under `/frontend`, and GitHub Actions weekly.
+The GitHub Actions workflow and Dockerfile are present. Public GitHub Actions
+has verified earlier ServicePulse commits, including frontend checks,
+high-severity npm audit, PostgreSQL Testcontainers, and frontend/backend image
+builds. Each new feature commit still needs its own remote CI run after push;
+Docker is unavailable in the current local workstation.
 
 Maven packaging uses a fixed archive output timestamp. Two consecutive local package runs produced byte-identical executable JARs.
 
@@ -235,8 +240,8 @@ runs Maven `verify`, including the
 PostgreSQL Testcontainers gate, then builds the non-root container image. Pull
 requests also receive GitHub's dependency review.
 
-These jobs are configuration only until the repository is pushed and GitHub
-Actions records a run.
+These jobs have run successfully for published commits, but a new feature is
+not remotely verified until its pushed commit has a corresponding green run.
 
 ## Public routes
 
@@ -251,7 +256,7 @@ The generated OpenAPI 3.1 document identifies the ServicePulse API and build
 version, defines an HTTP bearer/JWT scheme, and applies it globally.
 Registration, login, refresh, and public system status explicitly override
 that requirement with an empty security array. A runtime H2-substitute check
-observed all 20 implemented
+observed all 23 implemented
 paths; PostgreSQL and deployed OpenAPI checks remain separate gates.
 
 Authentication routes:
@@ -314,8 +319,22 @@ Membership routes:
 
 Members may list their workspace directory; only administrators may add, change,
 or remove memberships. Adds reference existing enabled users, including users
-created through self-registration. Invitations are not implemented. A workspace
-must retain at least one enabled administrator.
+created through self-registration. A workspace must retain at least one enabled
+administrator.
+
+Invitation routes:
+
+- `GET /api/v1/workspaces/{workspaceId}/invitations`
+- `POST /api/v1/workspaces/{workspaceId}/invitations`
+- `DELETE /api/v1/workspaces/{workspaceId}/invitations/{invitationId}`
+- `POST /api/v1/workspace-invitations/{token}/accept`
+
+Only administrators may create, list, or cancel invitations. Invitation tokens
+are returned once on creation, stored only as SHA-256 hashes, omitted from list
+and acceptance responses, expire after seven days, and may only be accepted by
+an enabled authenticated user whose email matches the invitation. Acceptance
+adds the user to the workspace and writes invitation/membership audit entries.
+No email delivery provider or frontend invitation-management UI is claimed yet.
 
 Notification operations route:
 

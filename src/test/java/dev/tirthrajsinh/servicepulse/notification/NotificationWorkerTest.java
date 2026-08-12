@@ -57,6 +57,7 @@ class NotificationWorkerTest {
         jdbc.update("delete from incident_comments");
         jdbc.update("delete from audit_entries");
         jdbc.update("delete from incidents");
+        jdbc.update("delete from workspace_invitations");
         jdbc.update("delete from workspace_members");
         jdbc.update("delete from services");
         jdbc.update("delete from users");
@@ -111,6 +112,7 @@ class NotificationWorkerTest {
         assertThat(attempts(jobId)).isEqualTo(1);
         assertThat(lastError(jobId)).isEqualTo("IllegalStateException");
 
+        makeDue(jobId);
         worker.runOnce();
         assertThat(status(jobId)).isEqualTo("DELIVERED");
         assertThat(attempts(jobId)).isEqualTo(2);
@@ -126,6 +128,7 @@ class NotificationWorkerTest {
         adapter.alwaysFail = true;
 
         worker.runOnce();
+        makeDue(jobId);
         worker.runOnce();
         worker.runOnce();
 
@@ -213,6 +216,14 @@ class NotificationWorkerTest {
         return jdbc.queryForObject(
             "select failed_at from notification_outbox where id = ?",
             Instant.class,
+            id
+        );
+    }
+
+    private void makeDue(UUID id) {
+        jdbc.update(
+            "update notification_outbox set next_attempt_at = ? where id = ?",
+            Instant.now().minusSeconds(1),
             id
         );
     }

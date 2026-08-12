@@ -11,6 +11,7 @@ import dev.tirthrajsinh.servicepulse.identity.InvalidRefreshTokenException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,6 +47,16 @@ class ApiExceptionHandler {
             "Resource conflict",
             exception.getMessage(),
             "resource-conflict"
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail handleAccessDenied(AccessDeniedException exception) {
+        return problem(
+            HttpStatus.FORBIDDEN,
+            "Access denied",
+            exception.getMessage(),
+            "access-denied"
         );
     }
 

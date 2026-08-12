@@ -56,6 +56,7 @@ class AuthenticationApiTest {
         jdbc.update("delete from incident_events");
         jdbc.update("delete from incident_comments");
         jdbc.update("delete from incidents");
+        jdbc.update("delete from workspace_invitations");
         jdbc.update("delete from workspace_members");
         jdbc.update("delete from services");
         jdbc.update("delete from audit_entries");

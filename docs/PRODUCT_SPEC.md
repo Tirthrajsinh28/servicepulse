@@ -1,15 +1,16 @@
 # ServicePulse Product Specification
 
 Status: Active design document
-Last updated: 2026-07-14
+Last updated: 2026-08-08
 
 Current evidence boundary:
 
-- Local backend evidence is 71 tests with the recorded coverage gate.
+- Local backend evidence is 78 tests with the recorded coverage gate: 94.6%
+  line coverage and 70.3% branch coverage.
 - Local frontend evidence is 20 tests with automated axe coverage across 12
   route states, including workspace membership and failed-notification
   operations administrator/viewer states.
-- Local OpenAPI evidence is 19 implemented paths with bearer/public security
+- Local OpenAPI evidence is 23 implemented paths with bearer/public security
   boundaries.
 - Browser workflow evidence uses the labeled H2 development substitute, not a
   PostgreSQL runtime.
@@ -51,6 +52,7 @@ All organizations, services, users, and events in this project are fictional or 
 | User | Authenticated person with a disabled/enabled state |
 | Workspace | Tenant boundary for services and incidents |
 | Membership | User role within a workspace |
+| Workspace invitation | Administrator-created pending invite with hashed token, expiry, and acceptance audit |
 | Managed service | Owned software/service registered in a workspace |
 | Incident | Severity, state, assignment, timestamps, and description |
 | Incident event | Append-only lifecycle or assignment event |
@@ -152,10 +154,27 @@ Allowed recovery paths:
 - Identical role updates do not create duplicate audit history.
 - Ordered row locks serialize membership mutations.
 - Last-enabled-administrator demotion/removal is rejected.
-- User invitations remain future work.
 - Self-registered users must be added to a workspace by an administrator before
   they receive workspace access.
 - Authenticated users discover only their own workspace memberships through `/api/v1/workspaces`.
+
+## Workspace invitation slice
+
+- Administrators create pending invitations for a workspace email and role.
+- Invitation email addresses are normalized to lowercase and duplicate pending
+  invitations are rejected.
+- Existing enabled workspace members cannot be invited again.
+- The API returns the one-time invitation token only on creation.
+- Only SHA-256 token hashes are stored; list, cancel, and accept responses omit
+  the token.
+- Administrators can list and cancel pending invitations inside their workspace.
+- Enabled authenticated invitees accept by token only when their account email
+  matches the invitation email.
+- Expired invitations are marked `EXPIRED` and cannot be accepted.
+- Acceptance creates workspace membership and writes invitation/membership
+  audit entries in the same application transaction.
+- No email delivery provider, public magic-link route, or frontend invitation
+  management UI is claimed in this slice.
 
 ## Background notification slice
 
@@ -193,8 +212,9 @@ Allowed recovery paths:
 1. Manual physical-keyboard, contrast, zoom, and screen-reader checks.
 2. Fresh screenshots and demo media captured from current builds.
 3. Docker/PostgreSQL/CI/deployment and verified health checks.
-4. Invitations, external notification delivery, distributed abuse controls,
-   signing-key rotation, and public separate-origin token-transport review.
+4. Frontend invitation management, optional email delivery, external
+   notification delivery, distributed abuse controls, signing-key rotation, and
+   public separate-origin token-transport review.
 
 ## Acceptance criteria
 

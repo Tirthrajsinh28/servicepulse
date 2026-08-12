@@ -1,7 +1,7 @@
 # ServicePulse Architecture
 
 Status: Implemented local architecture; external deployment pending
-Last updated: 2026-07-14
+Last updated: 2026-08-08
 
 ## Context
 
@@ -11,15 +11,15 @@ and one PostgreSQL-designed database schema.
 
 Current evidence boundary:
 
-- Backend: 68 local tests passed in the recorded clean regression.
-- Frontend: 14 local tests passed in the recorded frontend gate.
-- Accessibility: automated axe coverage spans eight current route states.
-- OpenAPI: 19 implemented paths were inspected locally with bearer/public
+- Backend: 78 local tests passed in the recorded clean regression.
+- Frontend: 20 local tests passed in the recorded frontend gate.
+- Accessibility: automated axe coverage spans 12 current route states.
+- OpenAPI: 23 implemented paths were inspected locally with bearer/public
   security boundaries.
 - Runtime: real-browser workflow evidence used the H2 development substitute.
-- Not yet evidenced: Docker image execution, Compose health, PostgreSQL
-  Testcontainers, remote GitHub Actions, public repository links, screenshots,
-  demo media, and external deployment.
+- Not yet evidenced for the current local invitation slice: local Docker image
+  execution, Compose health, local PostgreSQL runtime, pushed remote CI, and
+  external deployment.
 
 ```mermaid
 flowchart LR
@@ -62,6 +62,8 @@ Modules use IDs instead of bidirectional JPA graphs across boundaries. This limi
 - Foreign keys for tenant and service ownership.
 - Optimistic locking on incidents.
 - Unique workspace/user membership and service slug constraints.
+- Workspace invitations store lowercase email, role, status, SHA-256 token
+  hash, inviter, optional accepter, expiry, and terminal timestamps.
 - Incident declaration, transition, assignment, and comment operations write their state/event/audit records in one transaction.
 - Incident declaration and status transition also enqueue notification jobs in that transaction.
 - Exhausted notification jobs retain a failure timestamp and sanitized error class.
@@ -90,12 +92,15 @@ Current foundation:
 - Search and dashboard queries require an enabled current membership before applying a workspace predicate.
 - Managed-service reads require membership; creation and updates require the current administrator role.
 - Membership mutations lock workspace rows in deterministic user-ID order and preserve at least one enabled administrator.
+- Workspace invitation listing, creation, and cancellation require the current
+  administrator role. Acceptance requires an enabled authenticated user with an
+  email address matching the invitation; only token hashes are stored.
 - CSRF is disabled because the API accepts bearer tokens rather than browser cookies.
 
 Planned:
 
 - Distributed/shared-store login throttling, edge rate limits, login/refresh
-  audit events, and invitation workflows.
+  audit events, frontend invitation-management UI, and optional email delivery.
 
 ## Testing boundaries
 

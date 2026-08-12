@@ -1,14 +1,14 @@
 # ServicePulse Learning Path
 
 Status: Living checklist.
-Last updated: 2026-07-14
+Last updated: 2026-08-08
 
 The candidate should understand each topic before claiming confidence with ServicePulse.
 
 Current evidence boundary:
 
-- Local evidence includes 71 backend tests, 20 frontend tests, 12 automated
-  axe route states, 20 OpenAPI paths, and browser workflow verification against
+- Local evidence includes 78 backend tests, 20 frontend tests, 12 automated
+  axe route states, 23 OpenAPI paths, and browser workflow verification against
   the labeled H2 development substitute.
 - Do not claim PostgreSQL runtime verification, Docker execution, remote CI,
   public repository availability, screenshots/demo media, or deployment until
@@ -50,6 +50,8 @@ Current evidence boundary:
 - [ ] Refresh-token rotation and revocation.
 - [ ] Method security and workspace membership checks.
 - [ ] Pessimistic row locking, lock ordering, and last-admin invariants.
+- [ ] Invitation token generation, SHA-256 hash storage, expiry, email
+      matching, and one-time token response handling.
 - [ ] IDOR, CORS, CSRF, local versus distributed rate limiting, and sensitive error handling.
 
 ## Testing
