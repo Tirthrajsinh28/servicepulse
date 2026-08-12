@@ -170,6 +170,44 @@ test("administrator manages existing workspace members", async () => {
     .toBe(false);
 });
 
+test("administrator creates and cancels workspace invitations", async () => {
+  const api = new FakeApi();
+  const user = userEvent.setup();
+  const { container } = renderApp(api, "/members");
+
+  expect(await screen.findByRole("heading", { name: /members and roles/i }))
+    .toBeVisible();
+  expect(await screen.findByRole("heading", { name: /invite a workspace user/i }))
+    .toBeVisible();
+  expect(await screen.findByText("viewer.invited@example.test")).toBeVisible();
+  expect(await axe(container)).toHaveNoViolations();
+
+  await user.type(screen.getByLabelText(/invitee email/i), " New.Viewer@Example.Test ");
+  await user.selectOptions(screen.getByLabelText(/invitation role/i), "RESPONDER");
+  await user.click(screen.getByRole("button", { name: /create invitation/i }));
+
+  expect(await screen.findByText(/new.viewer@example.test was invited as responder/i))
+    .toBeVisible();
+  expect(screen.getByText(/one-time invitation token for new.viewer@example.test/i))
+    .toBeVisible();
+  expect(screen.getByText("demo-token-2")).toBeVisible();
+  expect(api.invitations[0]).toMatchObject({
+    email: "new.viewer@example.test",
+    role: "RESPONDER",
+    status: "PENDING",
+  });
+
+  const invitedRow = screen.getByText("new.viewer@example.test").closest("tr");
+  expect(invitedRow).not.toBeNull();
+  await user.click(
+    within(invitedRow as HTMLTableRowElement).getByRole("button", { name: /^cancel$/i }),
+  );
+
+  expect(await screen.findByText(/Invitation for new.viewer@example.test was canceled/i))
+    .toBeVisible();
+  expect(api.invitations[0].status).toBe("CANCELED");
+});
+
 test("viewer can inspect members without membership mutation controls", async () => {
   const { container } = renderApp(new FakeApi("VIEWER"), "/members");
 
@@ -177,6 +215,10 @@ test("viewer can inspect members without membership mutation controls", async ()
     .toBeVisible();
   expect(await screen.findByText("Synthetic Responder")).toBeVisible();
   expect(screen.queryByRole("heading", { name: /add an existing user/i }))
+    .not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: /invite a workspace user/i }))
+    .not.toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: /^invitations$/i }))
     .not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^save$/i })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^remove$/i })).not.toBeInTheDocument();

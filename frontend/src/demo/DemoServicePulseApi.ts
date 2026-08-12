@@ -3,6 +3,7 @@ import type {
   AddWorkspaceMemberInput,
   AuthBootstrap,
   ChangeWorkspaceMemberRoleInput,
+  CreateWorkspaceInvitationInput,
   CreateManagedServiceInput,
   DashboardSummary,
   DeclareIncidentInput,
@@ -18,6 +19,7 @@ import type {
   ReplayedNotificationJob,
   UpdateManagedServiceInput,
   Workspace,
+  WorkspaceInvitation,
   WorkspaceMember,
 } from "../lib/types";
 
@@ -39,6 +41,7 @@ export class DemoServicePulseApi implements ServicePulseApi {
   events: IncidentEvent[];
   services: ManagedService[];
   members: WorkspaceMember[];
+  invitations: WorkspaceInvitation[];
   failedNotificationJobs: FailedNotificationJob[];
 
   constructor(role: Workspace["role"] = "ADMIN", authenticated = true) {
@@ -106,6 +109,21 @@ export class DemoServicePulseApi implements ServicePulseApi {
         enabled: true,
         role: "RESPONDER",
         createdAt: NOW,
+      },
+    ];
+    this.invitations = [
+      {
+        id: "invitation-1",
+        workspaceId: workspace.id,
+        email: "viewer.invited@example.test",
+        role: "VIEWER",
+        status: "PENDING",
+        invitedBy: "user-1",
+        acceptedBy: null,
+        createdAt: NOW,
+        expiresAt: "2026-07-08T16:00:00Z",
+        acceptedAt: null,
+        canceledAt: null,
       },
     ];
     this.failedNotificationJobs = [
@@ -291,6 +309,51 @@ export class DemoServicePulseApi implements ServicePulseApi {
     return Promise.resolve();
   }
 
+  getInvitations(): Promise<WorkspaceInvitation[]> {
+    return Promise.resolve(this.invitations.map(cloneInvitation));
+  }
+
+  createInvitation(
+    _workspaceId: string,
+    input: CreateWorkspaceInvitationInput,
+  ): Promise<WorkspaceInvitation> {
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const invitation: WorkspaceInvitation = {
+      id: `invitation-${this.invitations.length + 1}`,
+      workspaceId: "workspace-1",
+      email: normalizedEmail,
+      role: input.role,
+      status: "PENDING",
+      invitedBy: "user-1",
+      acceptedBy: null,
+      createdAt: NOW,
+      expiresAt: "2026-07-08T16:00:00Z",
+      acceptedAt: null,
+      canceledAt: null,
+      token: `demo-token-${this.invitations.length + 1}`,
+    };
+    this.invitations.unshift(invitation);
+    return Promise.resolve(cloneInvitation(invitation));
+  }
+
+  cancelInvitation(_workspaceId: string, invitationId: string): Promise<void> {
+    this.invitations = this.invitations.map((item) =>
+      item.id === invitationId
+        ? { ...item, status: "CANCELED", canceledAt: NOW }
+        : item,
+    );
+    return Promise.resolve();
+  }
+
+  acceptInvitation(token: string): Promise<WorkspaceInvitation> {
+    const invitation = this.invitations.find((item) => item.token === token);
+    if (!invitation) return Promise.reject(new Error("Invitation not found"));
+    invitation.status = "ACCEPTED";
+    invitation.acceptedBy = this.session?.user.id ?? "user-1";
+    invitation.acceptedAt = NOW;
+    return Promise.resolve(cloneInvitation(invitation));
+  }
+
   getFailedNotificationJobs(
     _workspaceId: string,
     page = 0,
@@ -386,6 +449,10 @@ function cloneService(service: ManagedService): ManagedService {
 
 function cloneMember(member: WorkspaceMember): WorkspaceMember {
   return { ...member };
+}
+
+function cloneInvitation(invitation: WorkspaceInvitation): WorkspaceInvitation {
+  return { ...invitation };
 }
 
 function cloneFailedNotificationJob(

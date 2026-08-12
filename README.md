@@ -54,13 +54,15 @@ The current scope includes:
 - Role-separated controls, responsive layouts, route focus, and explicit
   loading/empty/success/error states.
 - Frontend unit, HTTP-boundary, route, and automated axe tests.
+- Administrator invitation management UI for create, list, cancel, and
+  one-time token display after creation.
 
 The event and audit tables are append-only through the current application repositories. Database-level immutability controls are not yet implemented.
 
 The next quality gates are physical-keyboard/contrast/zoom/screen-reader
-accessibility checks, Docker and local PostgreSQL verification, frontend
-invite-management UI, email/provider-backed invitation delivery if selected,
-PostgreSQL-backed or deployed OpenAPI inspection, and a deployment decision.
+accessibility checks, Docker and local PostgreSQL verification,
+email/provider-backed invitation delivery if selected, PostgreSQL-backed or
+deployed OpenAPI inspection, and a deployment decision.
 
 The GitHub Actions workflow and Dockerfile are present. Public GitHub Actions
 has verified earlier ServicePulse commits, including frontend checks,
@@ -334,7 +336,9 @@ are returned once on creation, stored only as SHA-256 hashes, omitted from list
 and acceptance responses, expire after seven days, and may only be accepted by
 an enabled authenticated user whose email matches the invitation. Acceptance
 adds the user to the workspace and writes invitation/membership audit entries.
-No email delivery provider or frontend invitation-management UI is claimed yet.
+The frontend implements administrator invitation create/list/cancel controls
+and displays the creation token once for local demos; email delivery and a
+public magic-link route are not implemented.
 
 Notification operations route:
 

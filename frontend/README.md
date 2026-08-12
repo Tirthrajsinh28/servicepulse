@@ -86,11 +86,11 @@ creates a synthetic account only when the operator supplies
 
 ## Current evidence
 
-- 20 Vitest tests pass across two files.
+- 21 Vitest tests pass across two files.
 - Automated axe scans cover login, dashboard, service catalog administrator and
-  viewer states, workspace membership administrator and viewer states, failed
-  notification administrator and viewer states, declaration, editable incident
-  detail, read-only viewer detail, and the custom 404 with no reported
+  viewer states, workspace membership/invitation administrator and viewer
+  states, failed notification administrator and viewer states, declaration,
+  editable incident detail, read-only viewer detail, and the custom 404 with no reported
   violations.
 - ESLint and TypeScript checks pass.
 - The Vite production build succeeds.

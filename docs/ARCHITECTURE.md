@@ -95,12 +95,15 @@ Current foundation:
 - Workspace invitation listing, creation, and cancellation require the current
   administrator role. Acceptance requires an enabled authenticated user with an
   email address matching the invitation; only token hashes are stored.
+- The browser client exposes administrator invitation create/list/cancel
+  controls and only displays the raw token in the creation response state.
 - CSRF is disabled because the API accepts bearer tokens rather than browser cookies.
 
 Planned:
 
 - Distributed/shared-store login throttling, edge rate limits, login/refresh
-  audit events, frontend invitation-management UI, and optional email delivery.
+  audit events, optional invitation email delivery, and a public magic-link
+  acceptance route.
 
 ## Testing boundaries
 

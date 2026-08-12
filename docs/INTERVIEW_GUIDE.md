@@ -125,7 +125,7 @@ executes frontend checks and high-severity npm audit, and builds backend and
 frontend container images.
 
 The current local backend gate passes 78 Maven tests with the JaCoCo gate met.
-The frontend locally passes ESLint, TypeScript, 20 Vitest tests, automated axe
+The frontend locally passes ESLint, TypeScript, 21 Vitest tests, automated axe
 route scans, npm high-severity audit, and the Vite production build. A new
 feature commit is not remotely verified until its own GitHub Actions run passes.
 
@@ -190,9 +190,9 @@ content-security policy, and broader security tests remain incomplete.
 ## Known limitations
 
 See the repository README. The largest gaps are external notification delivery,
-frontend invitation management/email delivery, distributed/edge abuse controls,
-broader frontend accessibility/E2E coverage, local Docker/Compose verification,
-fresh CI for new commits, and deployment.
+invitation email delivery, distributed/edge abuse controls, broader frontend
+accessibility/E2E coverage, local Docker/Compose verification, fresh CI for new
+commits, and deployment.
 
 ## Future improvements
 

@@ -11,8 +11,13 @@
 - Add administrator-managed workspace invitations with hashed one-time tokens,
   cancellation, expiry handling, authenticated invitee acceptance, membership
   creation, and invitation/membership audit entries.
+- Add frontend administrator invitation create/list/cancel controls, a visible
+  pending-invitation queue, one-time token display after creation, and viewer
+  read-only regression coverage.
 - Expand backend regression coverage to 78 tests and OpenAPI coverage to 23
   implemented paths for the invitation slice.
+- Expand frontend regression coverage to 21 tests for the invitation-management
+  slice.
 
 ## [0.1.0] - 2026-07-30
 
@@ -42,6 +47,6 @@
   The ServicePulse frontend check gate and high-severity npm audit passed
   after the lockfile update.
 
-Local Docker Compose runtime checks, external deployment, frontend invitation
-management/email delivery, and external notification delivery remain pending or
-intentionally deferred.
+Local Docker Compose runtime checks, external deployment, invitation email
+delivery/public magic-link routing, and external notification delivery remain
+pending or intentionally deferred.

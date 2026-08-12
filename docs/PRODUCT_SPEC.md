@@ -173,8 +173,10 @@ Allowed recovery paths:
 - Expired invitations are marked `EXPIRED` and cannot be accepted.
 - Acceptance creates workspace membership and writes invitation/membership
   audit entries in the same application transaction.
-- No email delivery provider, public magic-link route, or frontend invitation
-  management UI is claimed in this slice.
+- The frontend includes administrator create/list/cancel controls and displays
+  the one-time token only immediately after creation.
+- No email delivery provider or public magic-link route is claimed in this
+  slice.
 
 ## Background notification slice
 
@@ -212,9 +214,9 @@ Allowed recovery paths:
 1. Manual physical-keyboard, contrast, zoom, and screen-reader checks.
 2. Fresh screenshots and demo media captured from current builds.
 3. Docker/PostgreSQL/CI/deployment and verified health checks.
-4. Frontend invitation management, optional email delivery, external
-   notification delivery, distributed abuse controls, signing-key rotation, and
-   public separate-origin token-transport review.
+4. Optional email delivery, external notification delivery, distributed abuse
+   controls, signing-key rotation, and public separate-origin token-transport
+   review.
 
 ## Acceptance criteria
 

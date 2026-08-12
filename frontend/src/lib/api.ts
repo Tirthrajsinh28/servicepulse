@@ -2,6 +2,7 @@ import type {
   AuthBootstrap,
   AddWorkspaceMemberInput,
   ChangeWorkspaceMemberRoleInput,
+  CreateWorkspaceInvitationInput,
   CreateManagedServiceInput,
   CurrentUser,
   DashboardSummary,
@@ -19,6 +20,7 @@ import type {
   UpdateManagedServiceInput,
   TokenResponse,
   Workspace,
+  WorkspaceInvitation,
   WorkspaceMember,
 } from "./types";
 
@@ -69,6 +71,13 @@ export interface ServicePulseApi {
     input: ChangeWorkspaceMemberRoleInput,
   ): Promise<WorkspaceMember>;
   removeMember(workspaceId: string, userId: string): Promise<void>;
+  getInvitations(workspaceId: string): Promise<WorkspaceInvitation[]>;
+  createInvitation(
+    workspaceId: string,
+    input: CreateWorkspaceInvitationInput,
+  ): Promise<WorkspaceInvitation>;
+  cancelInvitation(workspaceId: string, invitationId: string): Promise<void>;
+  acceptInvitation(token: string): Promise<WorkspaceInvitation>;
   getFailedNotificationJobs(
     workspaceId: string,
     page?: number,
@@ -258,6 +267,36 @@ export class FetchServicePulseApi implements ServicePulseApi {
     return this.request<void>(
       `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(userId)}`,
       { method: "DELETE" },
+    );
+  }
+
+  getInvitations(workspaceId: string) {
+    return this.request<WorkspaceInvitation[]>(
+      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/invitations`,
+    );
+  }
+
+  createInvitation(workspaceId: string, input: CreateWorkspaceInvitationInput) {
+    return this.request<WorkspaceInvitation>(
+      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/invitations`,
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      },
+    );
+  }
+
+  cancelInvitation(workspaceId: string, invitationId: string) {
+    return this.request<void>(
+      `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/invitations/${encodeURIComponent(invitationId)}`,
+      { method: "DELETE" },
+    );
+  }
+
+  acceptInvitation(token: string) {
+    return this.request<WorkspaceInvitation>(
+      `/api/v1/workspace-invitations/${encodeURIComponent(token)}/accept`,
+      { method: "POST" },
     );
   }
 

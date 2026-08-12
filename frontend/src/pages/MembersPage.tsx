@@ -5,25 +5,32 @@ import { EmptyState, ErrorNotice, LoadingPanel } from "../components/Feedback";
 import { ApiError } from "../lib/api";
 import { useApi } from "../lib/api-context";
 import { formatDateTime, humanize } from "../lib/format";
-import type { WorkspaceMember, WorkspaceRole } from "../lib/types";
+import type { WorkspaceInvitation, WorkspaceMember, WorkspaceRole } from "../lib/types";
 
 const ROLE_OPTIONS: WorkspaceRole[] = ["ADMIN", "RESPONDER", "VIEWER"];
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function MembersPage() {
   const api = useApi();
   const auth = useAuth();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
+  const [cancelingInvitationId, setCancelingInvitationId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [newUserId, setNewUserId] = useState("");
   const [newRole, setNewRole] = useState<WorkspaceRole>("RESPONDER");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<WorkspaceRole>("VIEWER");
+  const [createdInvitation, setCreatedInvitation] = useState<WorkspaceInvitation | null>(null);
   const [roleDrafts, setRoleDrafts] = useState<Record<string, WorkspaceRole>>({});
 
   const workspace = auth.workspaces.find(
@@ -39,23 +46,30 @@ export function MembersPage() {
     () => members.filter((member) => member.enabled).length,
     [members],
   );
+  const pendingInvitationCount = useMemo(
+    () => invitations.filter((invitation) => invitation.status === "PENDING").length,
+    [invitations],
+  );
 
   useEffect(() => {
     if (!auth.workspaceId) {
       return;
     }
     let active = true;
-    api
-      .getMembers(auth.workspaceId)
-      .then((items) => {
+    Promise.all([
+      api.getMembers(auth.workspaceId),
+      canAdminister ? api.getInvitations(auth.workspaceId) : Promise.resolve([]),
+    ])
+      .then(([items, invitationItems]) => {
         if (!active) return;
         setMembers(items);
         setRoleDrafts(Object.fromEntries(items.map((member) => [member.userId, member.role])));
+        setInvitations(invitationItems);
         setError(null);
       })
       .catch((caught: unknown) => {
         if (active) {
-          setError(caught instanceof Error ? caught.message : "Unable to load members.");
+          setError(caught instanceof Error ? caught.message : "Unable to load workspace access.");
         }
       })
       .finally(() => {
@@ -64,7 +78,7 @@ export function MembersPage() {
     return () => {
       active = false;
     };
-  }, [api, auth.workspaceId]);
+  }, [api, auth.workspaceId, canAdminister]);
 
   if (!auth.workspaceId) {
     return (
@@ -115,6 +129,50 @@ export function MembersPage() {
     }
   }
 
+  async function createInvitation(event: React.FormEvent) {
+    event.preventDefault();
+    if (!auth.workspaceId || !canAdminister) return;
+    const email = inviteEmail.trim();
+    const nextErrors: Record<string, string> = {};
+    if (!email) {
+      nextErrors.email = "Enter the invitee's email address.";
+    } else if (!EMAIL_PATTERN.test(email)) {
+      nextErrors.email = "Use a valid email address.";
+    }
+    if (Object.keys(nextErrors).length) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+    setInviting(true);
+    setError(null);
+    setSuccess(null);
+    setCreatedInvitation(null);
+    setFieldErrors({});
+    try {
+      const invitation = await api.createInvitation(auth.workspaceId, {
+        email,
+        role: inviteRole,
+      });
+      setInvitations((current) =>
+        [invitation, ...current.filter((item) => item.id !== invitation.id)]
+          .sort(compareInvitations),
+      );
+      setInviteEmail("");
+      setInviteRole("VIEWER");
+      setCreatedInvitation(invitation);
+      setSuccess(`${invitation.email} was invited as ${humanize(invitation.role)}.`);
+    } catch (caught) {
+      if (caught instanceof ApiError) {
+        setError(caught.message);
+        setFieldErrors(caught.fieldErrors);
+      } else {
+        setError("The invitation could not be created.");
+      }
+    } finally {
+      setInviting(false);
+    }
+  }
+
   async function saveRole(member: WorkspaceMember) {
     if (!auth.workspaceId || !canAdminister) return;
     const role = roleDrafts[member.userId] ?? member.role;
@@ -159,6 +217,31 @@ export function MembersPage() {
     }
   }
 
+  async function cancelInvitation(invitation: WorkspaceInvitation) {
+    if (!auth.workspaceId || !canAdminister) return;
+    setCancelingInvitationId(invitation.id);
+    setError(null);
+    setSuccess(null);
+    try {
+      await api.cancelInvitation(auth.workspaceId, invitation.id);
+      setInvitations((current) =>
+        current.map((item) =>
+          item.id === invitation.id
+            ? { ...item, status: "CANCELED", canceledAt: new Date().toISOString() }
+            : item,
+        ),
+      );
+      setSuccess(`Invitation for ${invitation.email} was canceled.`);
+      if (createdInvitation?.id === invitation.id) {
+        setCreatedInvitation(null);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The invitation could not be canceled.");
+    } finally {
+      setCancelingInvitationId(null);
+    }
+  }
+
   return (
     <div className="page-stack">
       <header className="page-header">
@@ -200,9 +283,13 @@ export function MembersPage() {
             <small>At least one must remain</small>
           </article>
           <article className="severity-card">
-            <span>Invite policy</span>
-            <strong>Existing</strong>
-            <small>Adds require an enabled user ID; invitations are future work</small>
+            <span>Pending invites</span>
+            <strong>{canAdminister ? pendingInvitationCount : "Admin"}</strong>
+            <small>
+              {canAdminister
+                ? "One-time tokens are shown only when created"
+                : "Only administrators manage invitations"}
+            </small>
           </article>
         </section>
       ) : null}
@@ -227,8 +314,8 @@ export function MembersPage() {
                   }
                 />
                 <small id="member-user-id-hint">
-                  Registration and invitations are not implemented; add only a
-                  known enabled user.
+                  Use this only when the user already has an enabled account.
+                  Invite new workspace users by email below.
                 </small>
                 {fieldErrors.userId ? (
                   <small className="field-error" id="member-user-id-error">
@@ -259,6 +346,143 @@ export function MembersPage() {
               </span>
             </div>
           </form>
+        </section>
+      ) : null}
+
+      {canAdminister ? (
+        <section className="content-card" aria-labelledby="new-invitation-heading">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Administrator action</span>
+              <h2 id="new-invitation-heading">Invite a workspace user</h2>
+            </div>
+          </div>
+          <form className="form-stack" onSubmit={createInvitation} noValidate>
+            <div className="form-grid">
+              <label>
+                Invitee email
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                  aria-describedby={
+                    fieldErrors.email ? "invitation-email-error" : "invitation-email-hint"
+                  }
+                />
+                <small id="invitation-email-hint">
+                  The backend normalizes email and rejects duplicate pending invitations.
+                </small>
+                {fieldErrors.email ? (
+                  <small className="field-error" id="invitation-email-error">
+                    {fieldErrors.email}
+                  </small>
+                ) : null}
+              </label>
+              <label>
+                Invitation role
+                <select
+                  value={inviteRole}
+                  onChange={(event) => setInviteRole(event.target.value as WorkspaceRole)}
+                >
+                  {ROLE_OPTIONS.map((role) => (
+                    <option key={role} value={role}>
+                      {humanize(role)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="form-actions">
+              <button className="button button-primary" type="submit" disabled={inviting}>
+                {inviting ? "Creating invitation..." : "Create invitation"}
+              </button>
+              <span className="form-hint">
+                No email provider is configured; copy the one-time token after creation.
+              </span>
+            </div>
+          </form>
+
+          {createdInvitation?.token ? (
+            <div className="notice notice-success invitation-token" role="status">
+              <div>
+                <strong>One-time invitation token for {createdInvitation.email}</strong>
+                <p>
+                  Copy it now. For local demos, the invitee accepts through{" "}
+                  <code>/api/v1/workspace-invitations/{createdInvitation.token}/accept</code>.
+                </p>
+              </div>
+              <code>{createdInvitation.token}</code>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {canAdminister ? (
+        <section className="content-card" aria-labelledby="invitations-heading">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Invitation queue</span>
+              <h2 id="invitations-heading">Invitations</h2>
+            </div>
+            <span>{invitations.length} invitation(s)</span>
+          </div>
+
+          {!loading && invitations.length === 0 ? (
+            <EmptyState
+              title="No invitations"
+              message="Create an invitation when someone needs access but is not yet a member."
+            />
+          ) : null}
+
+          {invitations.length > 0 ? (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Email</th>
+                    <th scope="col">Role</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Expires</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invitations.map((invitation) => (
+                    <tr key={invitation.id}>
+                      <th scope="row">
+                        {invitation.email}
+                        <small>
+                          <code>{invitation.id}</code>
+                        </small>
+                      </th>
+                      <td>{humanize(invitation.role)}</td>
+                      <td>
+                        <span className={`badge ${invitationStatusClass(invitation)}`}>
+                          {humanize(invitation.status)}
+                        </span>
+                      </td>
+                      <td>{formatDateTime(invitation.expiresAt)}</td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="button button-ghost"
+                            type="button"
+                            disabled={
+                              invitation.status !== "PENDING"
+                              || cancelingInvitationId === invitation.id
+                            }
+                            onClick={() => void cancelInvitation(invitation)}
+                          >
+                            {cancelingInvitationId === invitation.id ? "Canceling..." : "Cancel"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -386,4 +610,27 @@ function compareMembers(left: WorkspaceMember, right: WorkspaceMember): number {
     || left.displayName.localeCompare(right.displayName, "en", { sensitivity: "base" })
     || left.userId.localeCompare(right.userId)
   );
+}
+
+function compareInvitations(
+  left: WorkspaceInvitation,
+  right: WorkspaceInvitation,
+): number {
+  const statusOrder: Record<WorkspaceInvitation["status"], number> = {
+    PENDING: 0,
+    ACCEPTED: 1,
+    CANCELED: 2,
+    EXPIRED: 3,
+  };
+  return (
+    statusOrder[left.status] - statusOrder[right.status]
+    || right.createdAt.localeCompare(left.createdAt)
+    || left.email.localeCompare(right.email, "en", { sensitivity: "base" })
+  );
+}
+
+function invitationStatusClass(invitation: WorkspaceInvitation): string {
+  if (invitation.status === "PENDING") return "status-monitoring";
+  if (invitation.status === "ACCEPTED") return "status-resolved";
+  return "status-open";
 }

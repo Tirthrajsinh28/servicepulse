@@ -108,12 +108,34 @@ export interface WorkspaceMember {
   createdAt: string;
 }
 
+export type WorkspaceInvitationStatus = "PENDING" | "ACCEPTED" | "CANCELED" | "EXPIRED";
+
+export interface WorkspaceInvitation {
+  id: string;
+  workspaceId: string;
+  email: string;
+  role: WorkspaceRole;
+  status: WorkspaceInvitationStatus;
+  invitedBy: string;
+  acceptedBy?: string | null;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string | null;
+  canceledAt?: string | null;
+  token?: string | null;
+}
+
 export interface AddWorkspaceMemberInput {
   userId: string;
   role: WorkspaceRole;
 }
 
 export interface ChangeWorkspaceMemberRoleInput {
+  role: WorkspaceRole;
+}
+
+export interface CreateWorkspaceInvitationInput {
+  email: string;
   role: WorkspaceRole;
 }
 
